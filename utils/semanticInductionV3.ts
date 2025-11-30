@@ -1,23 +1,31 @@
 // utils/semanticInductionV3.ts
 
 import { AuraNode, AuraEdge } from "./types";
-
-// Import en "nommé" (car tes modules n'ont PAS d'export default)
 import { clusterGraph } from "./clusterGraph";
-import { clusterLLMReviewer } from "./clusterLLMReviewer";
+import { buildDomainNamingPrompt } from "./buildDomainNamingPromptS";
+import { nameDomainsWithLLM } from "./clusterLLMReviewer";
 import { graphToMermaidDomains } from "./graphToMermaidDomains";
+
 export async function semanticInductionV3(
   nodes: AuraNode[],
   edges: AuraEdge[]
 ) {
-  // 1. Clustering brut
-  const clustered = clusterGraph({ nodes, edges });
+  // 1. Clustering
+  const communities = clusterGraph(nodes, edges);
 
-  // 2. Amélioration des noms de domaines par LLM
-  const reviewed = await clusterLLMReviewer(clustered);
+  // 2. Génération du prompt LLM
+  const prompt = buildDomainNamingPrompt(nodes, communities);
 
-  // 3. Conversion → Mermaid multi-domaines
-  const mermaid = graphToMermaidDomains(reviewed);
+  // 3. Appel LLM Naming
+  const domainNames = await nameDomainsWithLLM(prompt);
 
-  return { mermaid };
-}
+  // 4. Diagramme
+  const mermaid = graphToMermaidDomains(
+    nodes,
+    edges,
+    domainNames,
+    communities
+  );
+
+  return { mermaid, domains: domainNames, communities };
+} 
