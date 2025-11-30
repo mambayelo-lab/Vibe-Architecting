@@ -3,7 +3,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { normalizeStorming } from "@/utils/normalize";
-import { buildSemanticGraph } from "@/utils/semanticGraph";
+import { upsertStormingIntoGraph } from "@/utils/semanticGraph";
+
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
@@ -55,7 +56,8 @@ Résume l'interview dans ce format JSON :
 
   const normalizedStorming = normalizeStorming(parsed.storming || {});
 
-  const semanticGraph = buildSemanticGraph(normalizedStorming);
+  const semanticGraph = upsertStormingIntoGraph(normalizedStorming);
+
 
   return NextResponse.json({
     execSummary,
